@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fo Companion</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg">
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header><span style="font-size:22px">🫧</span><h1>Fo Companion</h1><span class="status" id="status"></span></header>
+<main id="view"></main>
+<nav>
+  <button data-tab="chat">Chat</button>
+  <button data-tab="tasks">Tasks</button>
+  <button data-tab="tools">Tools</button>
+  <button data-tab="settings">Settings</button>
+</nav>
+<div id="pip-wrap"></div>
+<script type="module" src="/app.js"></script>
+<script>
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+</script>
+</body>
+</html>
