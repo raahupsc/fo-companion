@@ -23,7 +23,22 @@ export function connected() { const t = getTokens(); return !!(t && t.access_tok
 
 export function clientId() { return localStorage.getItem(LS_CLIENT) || null; }
 
+// Same-origin proxy when one exists (serve.py locally, the Vercel edge function
+// when hosted); browsers block direct cross-origin calls to Wajo's API.
+const PROXY = "/api";
+let proxyOk = null;
+async function usingProxy() {
+  if (proxyOk !== null) return proxyOk;
+  try { proxyOk = (await fetch(PROXY + "/ping")).ok; } catch { proxyOk = false; }
+  return proxyOk;
+}
+function urlFor(u) { return u.startsWith(ISSUER) ? PROXY + u.slice(ISSUER.length) : u; }
+
 async function serverMeta() {
+  if (await usingProxy()) {
+    const p = await fetch(PROXY + "/.well-known/oauth-authorization-server");
+    if (p.ok) return p.json();
+  }
   const res = await fetch(ISSUER + "/.well-known/oauth-authorization-server");
   if (!res.ok) throw new Error("Could not read Wajo's OAuth metadata (" + res.status + ")");
   return res.json();
@@ -36,7 +51,7 @@ async function registerClient() {
   const base = location.pathname.endsWith("/") ? location.pathname : location.pathname.replace(/[^/]*$/, "") + "/";
   const redirect = location.origin + base;
   sessionStorage.setItem("fo-redirect", redirect);
-  const res = await fetch(meta.registration_endpoint, {
+  const res = await fetch(urlFor(meta.registration_endpoint), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -90,7 +105,7 @@ export async function handleCallback(params) {
     client_id: clientId(),
     code_verifier: verifier,
   });
-  const res = await fetch(meta.token_endpoint, { method: "POST", body });
+  const res = await fetch(urlFor(meta.token_endpoint), { method: "POST", body });
   if (!res.ok) throw new Error("Token exchange failed (" + res.status + "): " + (await res.text()).slice(0, 200));
   const tok = await res.json();
   persist(tok);
@@ -117,7 +132,7 @@ export async function refresh() {
     refresh_token: t.refresh_token,
     client_id: clientId(),
   });
-  const res = await fetch(meta.token_endpoint, { method: "POST", body });
+  const res = await fetch(urlFor(meta.token_endpoint), { method: "POST", body });
   if (!res.ok) { clearTokens(); throw new Error("refresh-failed"); }
   const tok = await res.json();
   persist(tok); // refresh token rotates: store the new one

@@ -1,7 +1,16 @@
 // Minimal MCP client (Streamable HTTP / JSON-RPC) for Wajo's Fo server.
 import { accessToken, refresh } from "./auth.js";
 
-const ENDPOINT = "https://mcp.api.wajo.ai/fo";
+const ISSUER = "https://mcp.api.wajo.ai";
+const DIRECT = ISSUER + "/fo";
+const PROXY = "/api";
+let endpoint = null;
+async function pickEndpoint() {
+  if (endpoint) return endpoint;
+  try { if ((await fetch(PROXY + "/ping")).ok) { endpoint = PROXY + "/fo"; return endpoint; } } catch {}
+  endpoint = DIRECT;
+  return endpoint;
+}
 let sessionId = null;
 let nextId = 1;
 
@@ -17,7 +26,7 @@ async function rpc(method, params, isNotification = false) {
   };
   if (sessionId) headers["Mcp-Session-Id"] = sessionId;
 
-  const res = await fetch(ENDPOINT, { method: "POST", headers, body: JSON.stringify(body) });
+  const res = await fetch(await pickEndpoint(), { method: "POST", headers, body: JSON.stringify(body) });
 
   if (res.status === 401) {
     await refresh(); // one retry with a fresh token

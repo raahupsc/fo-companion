@@ -4,7 +4,8 @@ self.addEventListener("install", e => {
 });
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET" || !e.request.url.startsWith(self.location.origin)) return;
+  const u = new URL(e.request.url);
+  if (e.request.method !== "GET" || !u.href.startsWith(self.location.origin) || u.pathname.startsWith("/api/")) return;
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open("fo-shell-v1").then(c => c.put(e.request, copy)); }
