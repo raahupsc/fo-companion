@@ -113,7 +113,7 @@ async function renderTasks() {
 }
 function renderTaskList(raw) {
   try {
-    const parsed = typeof raw === "string" ? JSON.parse(raw.replace(/^[^[]*(?=[\{|\{)/, "")) : raw;
+    const parsed = typeof raw === "string" ? JSON.parse(raw.replace(/^[^[]*(?=\[|\{)/, "")) : raw;
     const rows = Array.isArray(parsed) ? parsed : parsed.tasks || parsed.goals || [];
     if (!rows.length) return `<p class="dim">Nothing open. Pip approves.</p>`;
     return rows.map(r => `<div class="task"><b>${esc(r.title || r.name || "Task")}</b>
