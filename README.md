@@ -27,6 +27,16 @@ npx vercel --prod
 On your phone, open the deployed URL, then "Add to Home screen" - it installs
 like a native app (manifest, service worker, app badge included).
 
+## GitHub Pages
+
+1. Repo Settings > General > Danger Zone > Change visibility > **Public**
+   (Pages needs a public repo on a free plan).
+2. Settings > Pages > Source: **Deploy from a branch**, Branch `main`, folder `/ (root)`, Save.
+3. Live at `https://<owner>.github.io/fo-companion/` - open it and "Add to Home screen".
+
+The app registers its OAuth redirect against whatever URL it is served from,
+so Pages subpaths work with no configuration.
+
 ## What's inside
 
 - **Chat** with Fo (`ask_fo`, polling long turns automatically)

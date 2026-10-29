@@ -1,4 +1,4 @@
-const SHELL = ["/", "/styles.css", "/app.js", "/auth.js", "/mcp.js", "/mascot.js", "/manifest.webmanifest", "/icon.svg"];
+const SHELL = ["./", "./styles.css", "./app.js", "./auth.js", "./mcp.js", "./mascot.js", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open("fo-shell-v1").then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

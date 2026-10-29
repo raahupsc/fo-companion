@@ -32,7 +32,10 @@ async function serverMeta() {
 // Register this app as a client on the fly, once per browser.
 async function registerClient() {
   const meta = await serverMeta();
-  const redirect = location.origin + "/oauth/callback";
+  // The redirect lands back on this app's own URL (works at a subpath, e.g. GitHub Pages).
+  const base = location.pathname.endsWith("/") ? location.pathname : location.pathname.replace(/[^/]*$/, "") + "/";
+  const redirect = location.origin + base;
+  sessionStorage.setItem("fo-redirect", redirect);
   const res = await fetch(meta.registration_endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -72,7 +75,7 @@ export async function connect() {
   location.assign(url.toString());
 }
 
-// Called from the callback route with ?code=&state=
+// Called when the app loads with ?code=&state= back from Wajo.
 export async function handleCallback(params) {
   const code = params.get("code");
   const state = params.get("state");
@@ -83,7 +86,7 @@ export async function handleCallback(params) {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
-    redirect_uri: location.origin + "/oauth/callback",
+    redirect_uri: sessionStorage.getItem("fo-redirect") || location.origin + "/",
     client_id: clientId(),
     code_verifier: verifier,
   });
@@ -92,6 +95,7 @@ export async function handleCallback(params) {
   const tok = await res.json();
   persist(tok);
   sessionStorage.removeItem("fo-pkce");
+  sessionStorage.removeItem("fo-redirect");
   sessionStorage.removeItem("fo-state");
   return tok;
 }
